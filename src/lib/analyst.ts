@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { config } from "./config";
 import type { Snapshot } from "./snapshot";
-import { bankName } from "./sources/adapters/bank";
+import { ruleAnswer } from "./shared/ruleAnswer";
 
 const SYSTEM = `أنت "محلل EGP Radar" — محلل كمي لسعر الدولار مقابل الجنيه المصري.
 قواعد صارمة:
@@ -45,22 +45,4 @@ export async function askAnalyst(question: string, s: Snapshot): Promise<{ answe
   return { answer: text || "—", mode: "claude" };
 }
 
-/** Deterministic answers for the core questions when no API key is configured. */
-export function ruleAnswer(q: string, s: Snapshot) {
-  const t = q.toLowerCase();
-  if (/أول|اول|first|بدأ/.test(t)) {
-    const f = s.firstMoverToday;
-    return f ? `أول تغيير مرصود اليوم: ${bankName(f.entity, "ar")} ${f.direction > 0 ? "رفع" : "خفض"} السعر (رُصد ${f.detected_at}؛ التغيير حدث بين ${f.prev_seen_at} و${f.detected_at}).`
-      : "لم يُرصد أي تغيير في أسعار البنوك المراقبة اليوم (أو لم تُجمع بيانات بنوك حديثة بعد).";
-  }
-  if (/تحذير|إنذار|انذار|alert|سبب/.test(t)) {
-    const a = s.alerts[0];
-    return a ? `آخر تنبيه (${a.created_at}): ${a.title_ar}\n${a.body_ar ?? ""}\nالمصادر: ${a.sources_json}` : "لا توجد تنبيهات حالية.";
-  }
-  const ns: any = s.forecast.nextSession;
-  if (ns.status !== "ok") return `بيانات غير كافية للتوقع: ${ns.reason}`;
-  const p = (x: number) => `${Math.round(x * 100)}%`;
-  return ns.showProbabilities
-    ? `توقع الجلسة القادمة (${s.market.nextSessionDate}) بنموذج ${ns.model}: صعود ${p(ns.probs[2])}، استقرار ${p(ns.probs[1])}، هبوط ${p(ns.probs[0])}. قوة الأدلة: ${ns.evidence}. النطاق المرجح: ${ns.rangeLow.toFixed(2)}–${ns.rangeHigh.toFixed(2)}.`
-    : `لا يوجد نموذج تفوّق على المعدلات التاريخية في الاختبار خارج العينة (${ns.backtest.nTest} جلسة)، لذلك لا توجد مؤشرات موثوقة على اتجاه الغد. المعدلات التاريخية: صعود ${p(ns.probs[2])}، استقرار ${p(ns.probs[1])}، هبوط ${p(ns.probs[0])}. النطاق المعتاد ليوم واحد: ${ns.rangeLow.toFixed(2)}–${ns.rangeHigh.toFixed(2)} (المصدر: سعر مرجعي يومي).`;
-}
+export { ruleAnswer };

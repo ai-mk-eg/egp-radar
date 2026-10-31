@@ -1,10 +1,10 @@
 import { getSetting, setSetting } from "@/lib/db";
-import { DEFAULT_SETTINGS, type Settings } from "@/lib/snapshot";
+import { DEFAULT_SETTINGS, loadSettings, type Settings } from "@/lib/snapshot";
 import { config } from "@/lib/config";
 export const runtime = "nodejs"; export const dynamic = "force-dynamic";
 const authorized = (req: Request) => !process.env.ADMIN_TOKEN || req.headers.get("x-admin-token") === process.env.ADMIN_TOKEN;
 export async function GET() {
-  return Response.json({ settings: await getSetting<Settings>("settings", DEFAULT_SETTINGS),
+  return Response.json({ settings: await loadSettings(),
     channelsConfigured: { telegram: Boolean(config.telegram.token && config.telegram.chatId), email: Boolean(config.smtp.host && config.smtp.to), claude: config.hasAnthropic() } });
 }
 export async function POST(req: Request) {

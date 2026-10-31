@@ -1,0 +1,90 @@
+# EGP Radar — fully automatic deployment on GitHub (free for public repos).
+# Every run: restore DB from the `state` branch → collect all sources → classify news → forecasts & alerts
+# (Telegram/email if secrets exist) → export JSON → build static site → deploy to GitHub Pages → save DB.
+name: EGP Radar pipeline
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+  schedule:
+    - cron: "*/15 5-15 * * 0-4"   # every 15 min, Sun–Thu 05:00–15:59 UTC (≈ 07:00–18:59 Cairo)
+    - cron: "17 */3 * * *"        # every 3 h otherwise (weekends, nights: daily refs, news)
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: egp-radar-pipeline
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      SMTP_HOST: ${{ secrets.SMTP_HOST }}
+      SMTP_PORT: ${{ secrets.SMTP_PORT }}
+      SMTP_USER: ${{ secrets.SMTP_USER }}
+      SMTP_PASS: ${{ secrets.SMTP_PASS }}
+      ALERT_EMAIL_FROM: ${{ secrets.ALERT_EMAIL_FROM }}
+      ALERT_EMAIL_TO: ${{ secrets.ALERT_EMAIL_TO }}
+      COLLECTOR_USER_AGENT: "EGP-Radar/1.0 (+https://github.com/${{ github.repository }})"
+      BANK_POLL_SECONDS: "600"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+
+      - run: npm ci
+
+      - name: Restore database from state branch
+        run: |
+          mkdir -p data
+          if git fetch --depth=1 origin state 2>/dev/null; then
+            git show origin/state:egp-radar.db > data/egp-radar.db && echo "restored $(du -h data/egp-radar.db | cut -f1)"
+          else
+            echo "no state yet — first run"
+          fi
+
+      - name: Seed history (first run only — idempotent)
+        run: npm run import:history
+
+      - name: Collect + analyse + alert
+        run: npx tsx workers/collector.ts --once
+
+      - name: Walk-forward backtest
+        run: npm run backtest
+
+      - name: Export data for the site
+        run: npm run export:static
+
+      - name: Save database to state branch
+        run: |
+          npx tsx scripts/checkpoint-db.ts data/egp-radar.db
+          cp data/egp-radar.db /tmp/egp-radar.db
+          cd /tmp && rm -rf statebr && mkdir statebr && cd statebr
+          git init -q -b state && cp /tmp/egp-radar.db .
+          git add egp-radar.db && git -c user.name="egp-radar-bot" -c user.email="actions@users.noreply.github.com" commit -qm "state $(date -u +%FT%TZ)"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" state
+
+      - name: Build static site
+        run: npm run build:static
+        env:
+          NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: out }
+      - id: deploy
+        uses: actions/deploy-pages@v4

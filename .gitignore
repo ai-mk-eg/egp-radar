@@ -8,3 +8,6 @@ next-env.d.ts
 data/*.db*
 data/*.log
 .DS_Store
+public/data/
+.static-api/
+out/

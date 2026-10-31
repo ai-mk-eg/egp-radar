@@ -10,6 +10,17 @@ import { median } from "./engine/stats";
 export type Settings = { thetaPct: number; sensitivity: "low" | "medium" | "high"; priceMoveAlertEgp: number; dispersionAlertEgp: number; channels: { telegram: boolean; email: boolean; browser: boolean }; minSeverity: "info" | "warning" | "critical"; cooldownMin: number; sessionReminderMin: number };
 export const DEFAULT_SETTINGS: Settings = { thetaPct: 0.1, sensitivity: "medium", priceMoveAlertEgp: 0.25, dispersionAlertEgp: 0.3, channels: { telegram: true, email: false, browser: true }, minSeverity: "warning", cooldownMin: 60, sessionReminderMin: 30 };
 
+/** Effective settings = defaults ← DB (settings page) ← config/settings.json (editable on GitHub for the static deployment). */
+export async function loadSettings(): Promise<Settings> {
+  const fromDb = await getSetting<Settings>("settings", DEFAULT_SETTINGS);
+  try {
+    const fs = await import("node:fs");
+    const f = (await import("node:path")).resolve(process.cwd(), "config/settings.json");
+    if (fs.existsSync(f)) { const o = JSON.parse(fs.readFileSync(f, "utf8")); delete o._note; return { ...fromDb, ...o, channels: { ...fromDb.channels, ...(o.channels || {}) } }; }
+  } catch (e) { console.error("[settings] config/settings.json ignored:", (e as Error).message); }
+  return fromDb;
+}
+
 let forecastCache: { key: string; value: ReturnType<typeof nextSession> } | null = null;
 
 export async function loadDaily(): Promise<DailyRow[]> {
@@ -27,7 +38,7 @@ export async function getNextSession(theta: number) {
 export async function buildSnapshot() {
   const db = await getDb();
   const now = new Date();
-  const settings = await getSetting<Settings>("settings", DEFAULT_SETTINGS);
+  const settings = await loadSettings();
   const market = marketStatus(now);
   const sources = await db.all("SELECT * FROM sources ORDER BY kind, id");
   const srcById = Object.fromEntries(sources.map((s) => [s.id, s]));

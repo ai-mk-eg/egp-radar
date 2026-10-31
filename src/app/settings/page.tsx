@@ -2,11 +2,12 @@
 import { useEffect, useState } from "react";
 import { usePrefs } from "@/components/prefs";
 import { Card, Empty, Pill } from "@/components/ui";
+import { getSettings, STATIC } from "@/lib/client";
 
 export default function SettingsPage() {
   const { t } = usePrefs();
   const [s, setS] = useState<any>(null); const [cfg, setCfg] = useState<any>(null); const [msg, setMsg] = useState(""); const [token, setToken] = useState("");
-  useEffect(() => { fetch("/api/settings").then((r) => r.json()).then((j) => { setS(j.settings); setCfg(j.channelsConfigured); }); }, []);
+  useEffect(() => { getSettings().then((j) => { setS(j.settings); setCfg(j.channelsConfigured); }); }, []);
   if (!s) return <Empty>…</Empty>;
   const save = async () => {
     const r = await fetch("/api/settings", { method: "POST", headers: { "Content-Type": "application/json", "x-admin-token": token }, body: JSON.stringify(s) });
@@ -41,10 +42,20 @@ export default function SettingsPage() {
           <div className="text-xs text-muted">Claude API: {cfg?.claude ? t("مُعدّ (تصنيف الأخبار + المحلل الذكي)", "configured") : t("غير مُعدّ — يُستخدم وضع القواعد", "not configured — rules mode")}</div>
         </div>
       </Card>
+      {STATIC ? (
+        <Card title={t("تعديل الإعدادات", "Editing settings")}>
+          <p className="text-sm text-ink2">{t("هذه النسخة منشورة على GitHub Pages (موقع ثابت). لتغيير الإعدادات عدّل ملف config/settings.json في المستودع، وتُطبَّق في الدورة التالية (خلال ~15 دقيقة). مفاتيح Telegram والبريد و Claude تُضاف كـ Secrets في المستودع.", "This copy runs on GitHub Pages (static). Edit config/settings.json in the repo; applied on the next run (~15 min). Telegram/email/Claude keys go in repository Secrets.")}</p>
+          <div className="mt-3 flex flex-wrap gap-2 text-sm">
+            <a className="rounded-lg bg-accent px-3 py-1.5 font-semibold text-white" href="https://github.com/ai-mk-eg/egp-radar/edit/main/config/settings.json" target="_blank" rel="noopener noreferrer">{t("تعديل الإعدادات", "Edit settings")}</a>
+            <a className="rounded-lg border border-line px-3 py-1.5" href="https://github.com/ai-mk-eg/egp-radar/settings/secrets/actions" target="_blank" rel="noopener noreferrer">{t("إضافة مفاتيح Telegram/البريد/Claude", "Add Telegram/email/Claude secrets")}</a>
+          </div>
+        </Card>
+      ) : (
       <div className="flex flex-wrap items-center gap-2">
         <input type="password" placeholder="ADMIN_TOKEN" value={token} onChange={(e) => setToken(e.target.value)} className="rounded-lg border border-line bg-card2 px-3 py-2 text-sm" />
         <button onClick={save} className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white">{t("حفظ", "Save")}</button><span className="text-sm text-muted">{msg}</span>
       </div>
+      )}
     </div>
   );
 }

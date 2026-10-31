@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { usePrefs } from "./prefs";
 import { useSnapshot } from "./useSnapshot";
+import { askAnalyst, STATIC } from "@/lib/client";
 import { Card, DataClass, Empty, Pill, Strength, UsdDir, ago, fmt, pct, timeCairo } from "./ui";
 
 export function Dashboard() {
@@ -44,7 +45,7 @@ function TopBar({ s, live }: { s: any; live: boolean }) {
     <div className="flex flex-wrap items-center gap-2 text-xs">
       <Pill tone={tone}>{t(ar, en)}</Pill>
       {hh && <Pill>{t("الجلسة القادمة", "Next session")} <span className="num">{m.nextSessionDate}</span> — {t("بعد", "in")} <span className="num">{hh}</span></Pill>}
-      <Pill tone={live ? "accent" : "neutral"}>{live ? t("● تحديث تلقائي متصل", "● Live updates connected") : t("○ تحديث دوري", "○ Periodic refresh")}</Pill>
+      {STATIC ? <Pill>{t("تُجمع البيانات تلقائيًا كل ~15 دقيقة", "Data collected automatically every ~15 min")}</Pill> : <Pill tone={live ? "accent" : "neutral"}>{live ? t("● تحديث تلقائي متصل", "● Live updates connected") : t("○ تحديث دوري", "○ Periodic refresh")}</Pill>}
       <span className="text-muted">{t("آخر بناء للبيانات", "Snapshot")}: {timeCairo(s.generatedAt, lang)} {t("(توقيت القاهرة)", "(Cairo)")}</span>
     </div>
   );
@@ -274,8 +275,7 @@ function Analyst() {
   const ask = async (question: string) => {
     if (!question.trim()) return; setBusy(true);
     try {
-      const r = await fetch("/api/analyst", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question }) });
-      const j = await r.json(); setLog((l) => [{ q: question, a: j.answer ?? j.error, mode: j.mode }, ...l]); setQ("");
+      const j = await askAnalyst(question); setLog((l) => [{ q: question, a: j.answer, mode: j.mode }, ...l]); setQ("");
     } finally { setBusy(false); }
   };
   const presets = [t("هل توجد مؤشرات إن الدولار هيرتفع بكرة؟", "Any signs USD will rise tomorrow?"), t("مين أول بنك رفع السعر النهارده؟", "Which bank moved first today?"), t("إيه سبب التحذير الحالي؟", "Why the current alert?")];

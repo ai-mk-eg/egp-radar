@@ -2,11 +2,12 @@
 import { useEffect, useState } from "react";
 import { usePrefs } from "@/components/prefs";
 import { Card, DataClass, Empty, Pill, ago, timeCairo } from "@/components/ui";
+import { getHealth } from "@/lib/client";
 
 export default function Health() {
   const { t, lang } = usePrefs();
   const [d, setD] = useState<any>(null);
-  useEffect(() => { const f = () => fetch("/api/health").then((r) => r.json()).then(setD); f(); const iv = setInterval(f, 30000); return () => clearInterval(iv); }, []);
+  useEffect(() => { const f = () => getHealth().then(setD); f(); const iv = setInterval(f, 30000); return () => clearInterval(iv); }, []);
   if (!d) return <Empty>…</Empty>;
   const status = (s: any) => {
     if (!s.last_attempt_at) return ["لم يُشغَّل بعد", "Never run", "neutral"];

@@ -2,11 +2,12 @@
 import { useEffect, useState } from "react";
 import { usePrefs } from "@/components/prefs";
 import { Card, fmt, pct } from "@/components/ui";
+import { getBacktest } from "@/lib/client";
 
 export default function Methodology() {
   const { t } = usePrefs();
   const [bt, setBt] = useState<any[]>([]);
-  useEffect(() => { fetch("/api/backtest").then((r) => r.json()).then(setBt); }, []);
+  useEffect(() => { getBacktest().then(setBt); }, []);
   const S = ({ h, children }: { h: string; children: React.ReactNode }) => <Card title={h}><div className="grid gap-2 text-sm leading-7 text-ink2">{children}</div></Card>;
   return (
     <div className="grid max-w-4xl gap-4">

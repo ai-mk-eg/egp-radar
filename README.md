@@ -29,6 +29,10 @@ npm run worker
 
 ## النشر
 
+**المنشور حاليًا — GitHub Pages + GitHub Actions (مجاني، بلا خادم):** الملف `.github/workflows/pages.yml` يشغّل كل 15 دقيقة خلال أيام العمل (وكل 3 ساعات خارجها): يسترجع قاعدة البيانات من فرع `state` ← يجمع كل المصادر ← يصنّف الأخبار ← يحسب التوقعات والتنبيهات (Telegram/البريد إن أُضيفت الـ Secrets) ← يصدّر JSON ← يبني الموقع وينشره ← يحفظ قاعدة البيانات. الإعدادات في `config/settings.json`. المفاتيح الاختيارية كـ Secrets: `ANTHROPIC_API_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `SMTP_*`, `ALERT_EMAIL_FROM/TO`.
+قيود هذا الوضع: جدولة GitHub قد تتأخر عدة دقائق، والمحلل الذكي يعمل بوضع القواعد (لا مفاتيح في المتصفح). لدقة أعلى استخدم Docker أدناه.
+
+
 **الخيار الموصى به — Docker Compose (ويب + جامع دائم + Postgres):**
 
 ```bash

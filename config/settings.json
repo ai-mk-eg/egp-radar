@@ -1,0 +1,11 @@
+{
+  "_note": "Alert & forecast settings used by the GitHub Pages deployment. Edit on GitHub; the next scheduled run picks them up. sensitivity: low|medium|high. minSeverity (what is sent to Telegram/email): info|warning|critical. Amounts in EGP.",
+  "sensitivity": "medium",
+  "priceMoveAlertEgp": 0.25,
+  "dispersionAlertEgp": 0.3,
+  "cooldownMin": 60,
+  "sessionReminderMin": 30,
+  "minSeverity": "warning",
+  "thetaPct": 0.1,
+  "channels": { "telegram": true, "email": false, "browser": true }
+}

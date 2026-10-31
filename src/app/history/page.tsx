@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Bar, BarChart, CartesianGrid, Cell, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { usePrefs } from "@/components/prefs";
 import { Card, DataClass, Empty, UsdDir, fmt, timeCairo } from "@/components/ui";
+import { getHistory } from "@/lib/client";
 
 const RANGES = [[30, "شهر", "1M"], [90, "3 أشهر", "3M"], [365, "سنة", "1Y"], [1000, "الكل", "All"]] as const;
 
@@ -11,7 +12,7 @@ export default function History() {
   const [days, setDays] = useState(365);
   const [d, setD] = useState<any>(null);
   const [table, setTable] = useState(false);
-  useEffect(() => { fetch(`/api/history?days=${days}`).then((r) => r.json()).then(setD); }, [days]);
+  useEffect(() => { getHistory(days).then(setD); }, [days]);
   const series = useMemo(() => (d?.daily ?? []).map((r: any, i: number, a: any[]) => ({ date: r.date, egp: r.egp, ch: i ? r.egp - a[i - 1].egp : null })), [d]);
   const tip = { contentStyle: { background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text)", fontSize: 12 }, labelStyle: { color: "var(--text-2)" } };
   return (
