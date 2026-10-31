@@ -6,7 +6,9 @@ name: EGP Radar pipeline
 on:
   push:
     branches: [main]
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      force: { description: "Poll every source now (ignore schedules/backoff)", type: boolean, default: false }
   schedule:
     - cron: "*/15 5-15 * * 0-4"   # every 15 min, Sun–Thu 05:00–15:59 UTC (≈ 07:00–18:59 Cairo)
     - cron: "17 */3 * * *"        # every 3 h otherwise (weekends, nights: daily refs, news)
@@ -61,7 +63,7 @@ jobs:
         run: npm run import:history
 
       - name: Collect + analyse + alert
-        run: npx tsx workers/collector.ts --once
+        run: npx tsx workers/collector.ts --once ${{ inputs.force && '--force' || '' }}
 
       - name: Walk-forward backtest
         run: npm run backtest
