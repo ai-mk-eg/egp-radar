@@ -1,0 +1,17 @@
+name: Diagnose bank pages
+on: { workflow_dispatch: {} }
+permissions: { contents: write }
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npx tsx scripts/diagnose-banks.ts
+      - name: Save to diag branch
+        run: |
+          cd diag && git init -q -b diag && git add . && git -c user.name=bot -c user.email=actions@users.noreply.github.com commit -qm diag
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" diag
