@@ -28,7 +28,7 @@ export function googleNews(id: string, q: string, lang: "ar" | "en"): SourceAdap
 
 /** GDELT DOC 2.0 API — free, no key, rolling ~3 months, ~15-min update cadence. */
 export const gdelt: SourceAdapter = {
-  id: "news:gdelt", name: "GDELT DOC 2.0", kind: "news", dataClass: "polled", pollSeconds: 1800,
+  id: "news:gdelt", name: "GDELT DOC 2.0", kind: "news", dataClass: "polled", pollSeconds: 10800, // GDELT rate-limits shared CI IPs (HTTP 429)
   url: "https://api.gdeltproject.org/api/v2/doc/doc?query=" +
     encodeURIComponent('("Egyptian pound" OR "Central Bank of Egypt" OR "الجنيه المصري") ') +
     "&mode=artlist&format=json&maxrecords=50&sort=datedesc&timespan=3d",

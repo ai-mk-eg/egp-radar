@@ -28,7 +28,7 @@ Judge only from the headline and source given. A headline that merely reports to
 export function ruleClassify(title: string): { label: Label; relevance: number; reason: string } {
   const t = title.toLowerCase();
   const has = (...w: string[]) => w.some((x) => t.includes(x));
-  if (has("سعر الدولار اليوم", "سعر الدولار الآن", "exchange rate today", "rates today")) return { label: "unrelated_or_unverified", relevance: 0.1, reason: "خبر يعرض السعر نفسه وليس عاملًا مؤثرًا" };
+  if (has("سعر الدولار اليوم", "سعر الدولار الآن", "exchange rate today", "rates today") || /(سعر|أسعار)\s+(الدولار|العملات|الذهب).{0,60}(اليوم|الآن|لحظة)/.test(title) || /(اليوم|الآن).{0,30}(سعر|أسعار)\s+(الدولار|العملات)/.test(title)) return { label: "unrelated_or_unverified", relevance: 0.1, reason: "خبر يعرض السعر نفسه وليس عاملًا مؤثرًا" };
   if (has("outflow", "selling", "sold", "خروج", "تخارج", "بيع أذون", "record low", "أدنى مستوى", "shortage", "نقص", "cut rates", "خفض الفائدة", "تراجع الاحتياطي"))
     return { label: "usd_up_pressure", relevance: 0.5, reason: "كلمات تشير إلى خروج أموال أو ضغط على العملة (تصنيف بالقواعد)" };
   if (has("inflow", "disburse", "tranche", "شريحة", "تدفقات", "record remittances", "تحويلات قياسية", "deposit", "وديعة", "raise rates", "رفع الفائدة", "ارتفاع الاحتياطي"))

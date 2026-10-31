@@ -69,7 +69,7 @@ function Headline({ s }: { s: any }) {
         </div>
       )}
       <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
-        <dt className="text-muted">{t("المصدر", "Source")}</dt><dd>{isDaily ? t("currency-api — مرجعي يومي مجمّع (ليس سعر بنك)", "currency-api — daily aggregated reference (not a bank price)") : h.source === "CBE" ? t("البنك المركزي المصري", "Central Bank of Egypt") : h.source}</dd>
+        <dt className="text-muted">{t("المصدر", "Source")}</dt><dd>{isDaily ? t("currency-api — مرجعي يومي مجمّع (ليس سعر بنك)", "currency-api — daily aggregated reference (not a bank price)") : h.source === "CBE" ? t("البنك المركزي المصري", "Central Bank of Egypt") : /^median of (\d+)/.test(h.source) ? t(`الوسيط لأسعار ${h.source.match(/\d+/)[0]} بنوك محدّثة`, h.source) : h.source}</dd>
         <dt className="text-muted">{t("وقت القراءة", "As of")}</dt><dd>{timeCairo(h.asOf, lang, true)}</dd>
         {ref.daily && <><dt className="text-muted">{t("مرجعي يومي", "Daily ref.")}</dt><dd><span className="num">{fmt(ref.daily.egp, 4)}</span> {ref.daily.change !== null && <UsdDir d={Math.sign(Math.round(ref.daily.change * 100))} />} <span className="text-muted">({t("سوق", "mkt")} <span className="num">{ref.daily.marketDay}</span>)</span></dd></>}
         {ref.erapi && <><dt className="text-muted">ExchangeRate-API</dt><dd><span className="num">{fmt(ref.erapi.mid, 4)}</span> <span className="text-muted">{timeCairo(ref.erapi.asOf, lang, true)}</span></dd></>}

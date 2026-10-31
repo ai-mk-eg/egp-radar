@@ -12,3 +12,13 @@ describe("bank page parsing", () => {
     expect(sanityCheck(55.8, 55.9, 55.85)).toBeNull();
   });
 });
+import { ruleClassify } from "../src/lib/engine/news";
+describe("news rules", () => {
+  it("treats rate-listing articles as outcomes, not drivers", () => {
+    expect(ruleClassify("ما أسعار العملات في البنك المركزي اليوم السبت 31-10-2026؟").label).toBe("unrelated_or_unverified");
+    expect(ruleClassify("سعر الدولار اليوم في البنوك").label).toBe("unrelated_or_unverified");
+  });
+  it("flags foreign outflows as upward USD pressure", () => {
+    expect(ruleClassify("Foreign investors sold $700mn of Egyptian T-bills").label).toBe("usd_up_pressure");
+  });
+});
