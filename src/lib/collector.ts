@@ -10,7 +10,11 @@ async function ensureSource(a: SourceAdapter) {
   const db = await getDb();
   await db.run(
     `INSERT INTO sources(id, name, kind, url, data_class, poll_seconds) VALUES(?,?,?,?,?,?)
-     ON CONFLICT(id) DO UPDATE SET name=excluded.name, url=excluded.url, data_class=excluded.data_class, poll_seconds=excluded.poll_seconds`,
+     ON CONFLICT(id) DO UPDATE SET name=excluded.name, url=excluded.url, data_class=excluded.data_class, poll_seconds=excluded.poll_seconds, enabled=1,
+       -- a changed URL (adapter fixed in config) clears the failure backoff so it is retried immediately
+       consecutive_failures = CASE WHEN sources.url = excluded.url THEN sources.consecutive_failures ELSE 0 END,
+       last_attempt_at = CASE WHEN sources.url = excluded.url THEN sources.last_attempt_at ELSE NULL END,
+       last_error = CASE WHEN sources.url = excluded.url THEN sources.last_error ELSE NULL END`,
     [a.id, a.name, a.kind, a.url, a.dataClass, a.pollSeconds]);
 }
 
