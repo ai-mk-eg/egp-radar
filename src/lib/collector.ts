@@ -1,6 +1,6 @@
 import { getDb } from "./db";
 import { allAdapters } from "./sources/registry";
-import { setReferenceMid } from "./sources/adapters/bank";
+import { setReferenceMid, ALL_BANKS } from "./sources/adapters/bank";
 import type { CollectResult, SourceAdapter } from "./sources/types";
 import { cairoParts, isBusinessDay } from "./time";
 
@@ -86,6 +86,10 @@ export async function runCycle(opts: { force?: boolean } = {}): Promise<CycleRep
   const db = await getDb();
   const adapters = allAdapters();
   for (const a of adapters) await ensureSource(a);
+  for (const b of ALL_BANKS.filter((x) => x.enabled === false))
+    await db.run(`INSERT INTO sources(id, name, kind, url, data_class, poll_seconds, enabled, last_error) VALUES(?,?,?,?,?,?,0,?)
+      ON CONFLICT(id) DO UPDATE SET enabled=0, url=excluded.url, last_error=excluded.last_error`,
+      [`bank:${b.id}`, b.name_en, "bank", b.url, "polled", 0, `DISABLED: ${b.disabled_reason}`]);
   const ref = await db.get("SELECT egp FROM daily_fx ORDER BY date DESC LIMIT 1");
   setReferenceMid(ref?.egp ?? null);
   const due: SourceAdapter[] = [];

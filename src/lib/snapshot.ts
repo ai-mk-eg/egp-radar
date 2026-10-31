@@ -58,7 +58,7 @@ export async function buildSnapshot() {
     const dSell = q && prevDay ? q.sell - prevDay.sell : null;
     return {
       id: b.id, name_ar: b.name_ar, name_en: b.name_en, official: Boolean((b as any).official),
-      buy: q?.buy ?? null, sell: q?.sell ?? null, changedAt: q?.first_seen_at ?? null, lastSeenAt: q?.last_seen_at ?? null,
+      buy: q?.buy ?? null, sell: q?.sell ?? null, changedAt: q?.first_seen_at ?? null, bankTime: q?.source_time ?? null, lastSeenAt: q?.last_seen_at ?? null,
       fresh, ageMin, verified: Boolean(src?.verified), error: src?.last_error ?? null,
       vsPrevDay: dBuy === null ? null : { dBuy, dSell, direction: Math.sign(Math.round(dBuy * 100)) },
     };
@@ -89,7 +89,8 @@ export async function buildSnapshot() {
 
   // ---- forecasts ----
   const ns = await getNextSession(settings.thetaPct);
-  const anchorEntity = banks.find((b) => b.id === "CBE" && b.verified) ? "CBE" : "NBE";
+  // Anchor for hourly horizons: the first collected bank in a fixed preference order (stable across runs).
+  const anchorEntity = ["CBE", "CIB", "BM", "ALEX", "ADIB"].find((id) => banks.some((b) => b.id === id && b.verified)) ?? "CIB";
   const anchorQ = await db.all("SELECT mid, first_seen_at FROM quotes WHERE entity=? ORDER BY first_seen_at", [anchorEntity]);
   const intraday = intradayForecasts(anchorQ.map((q) => ({ t: new Date(q.first_seen_at).getTime(), mid: q.mid })), now.getTime());
 

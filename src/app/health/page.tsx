@@ -10,6 +10,7 @@ export default function Health() {
   useEffect(() => { const f = () => getHealth().then(setD); f(); const iv = setInterval(f, 30000); return () => clearInterval(iv); }, []);
   if (!d) return <Empty>…</Empty>;
   const status = (s: any) => {
+    if (s.enabled === 0 || s.enabled === false) return ["معطّل", "Disabled", "neutral"];
     if (!s.last_attempt_at) return ["لم يُشغَّل بعد", "Never run", "neutral"];
     if (s.last_error && !s.last_success_at) return ["فشل — لم ينجح قط", "Failing — never succeeded", "down"];
     if (s.last_error) return ["فشل مؤخرًا", "Failing", "down"];
@@ -23,10 +24,10 @@ export default function Health() {
         <div className="scroll-x"><table className="w-full text-xs">
           <thead><tr className="text-muted"><th className="text-start">{t("المصدر", "Source")}</th><th>{t("النوع", "Class")}</th><th>{t("الحالة", "Status")}</th><th>{t("آخر نجاح", "Last success")}</th><th>{t("آخر تغيّر بيانات", "Last data change")}</th><th>{t("فشل متتالٍ", "Fails")}</th><th>{t("الاستجابة", "Latency")}</th><th className="text-start">{t("آخر خطأ", "Last error")}</th></tr></thead>
           <tbody>{d.sources.map((s: any) => { const [ar, en, tone] = status(s); return (
-            <tr key={s.id} className="border-t border-line align-top"><td className="py-1.5"><div className="font-medium">{s.id}</div><a className="text-[10px] text-muted hover:underline" href={s.url} target="_blank" rel="noopener noreferrer">{s.name}</a>{!s.verified && <div><Pill tone="warn">{t("محوّل غير متحقق", "unverified adapter")}</Pill></div>}</td>
+            <tr key={s.id} className="border-t border-line align-top"><td className="py-1.5"><div className="font-medium">{s.id}</div><a className="text-[10px] text-muted hover:underline" href={s.url} target="_blank" rel="noopener noreferrer">{s.name}</a>{!s.verified && s.enabled !== 0 && <div><Pill tone="warn">{t("محوّل غير متحقق", "unverified adapter")}</Pill></div>}</td>
               <td className="text-center"><DataClass cls={s.data_class} /></td><td className="text-center"><Pill tone={tone as any}>{t(ar, en)}</Pill></td>
               <td className="text-center">{s.last_success_at ? `${timeCairo(s.last_success_at, lang, true)}` : "—"}</td><td className="text-center">{s.last_change_at ? ago((Date.now() - new Date(s.last_change_at).getTime()) / 60000, lang) : "—"}</td>
-              <td className="num text-center">{s.consecutive_failures}</td><td className="num text-center">{s.last_latency_ms ? `${s.last_latency_ms}ms` : "—"}</td><td className="max-w-[260px] break-words text-down">{s.last_error ?? ""}</td></tr>); })}</tbody>
+              <td className="num text-center">{s.consecutive_failures}</td><td className="num text-center">{s.last_latency_ms ? `${s.last_latency_ms}ms` : "—"}</td><td className={`max-w-[300px] break-words ${String(s.last_error ?? "").startsWith("DISABLED") ? "text-muted" : "text-down"}`}>{String(s.last_error ?? "").replace(/^DISABLED: /, "")}</td></tr>); })}</tbody>
         </table></div>
       </Card>
       <Card title={t("ماذا تعني الأنواع؟", "What the classes mean")}>
