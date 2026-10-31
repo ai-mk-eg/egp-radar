@@ -1,26 +1,29 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Design tokens. Dark is the primary identity (#0B1220 / #111D30); light is its own validated step, not an auto-flip. */
+:root, :root[data-theme="dark"] {
+  --bg: #0B1220; --card: #111D30; --card-2: #16253D; --border: #1E3150;
+  --text: #F8FAFC; --text-2: #A9B6CC; --muted: #6B7A93;
+  --accent: #3B82F6; --usd-up: #0EA5A0; --usd-down: #EF4444; --warn: #F5B800; --neutral: #64748B;
+  --grid: #1E3150;
 }
-
+:root[data-theme="light"] {
+  --bg: #F3F6FB; --card: #FFFFFF; --card-2: #EEF2F8; --border: #D9E1EC;
+  --text: #0B1220; --text-2: #3D4A60; --muted: #6B7A93;
+  --accent: #2563EB; --usd-up: #0D9488; --usd-down: #DC2626; --warn: #B45309; --neutral: #64748B;
+  --grid: #E3E9F2;
+}
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg); --color-card: var(--card); --color-card2: var(--card-2); --color-line: var(--border);
+  --color-ink: var(--text); --color-ink2: var(--text-2); --color-muted: var(--muted);
+  --color-accent: var(--accent); --color-up: var(--usd-up); --color-down: var(--usd-down); --color-warn: var(--warn); --color-neutral: var(--neutral);
 }
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+html { background: var(--bg); }
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg); color: var(--text);
+  font-family: "Segoe UI", "Noto Sans Arabic", "Noto Naskh Arabic", Tahoma, system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
+.num { font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; display: inline-block; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; }
+.scroll-x { overflow-x: auto; -webkit-overflow-scrolling: touch; }

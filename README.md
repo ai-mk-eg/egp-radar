@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# EGP RADAR — Dollar Early Warning & Intelligence System
 
-## Getting Started
+منصة لمراقبة وتحليل الدولار مقابل الجنيه المصري: رصد حركات البنوك الفعلية، إحصاءات «من يتحرك أولًا ومن يتبع»، توقعات مختبرة تاريخيًا لا تُعرض إلا عند ثبوت أفضليتها، تنبيهات ذكية، ومحلل ذكي يجيب من بيانات المنصة فقط.
 
-First, run the development server:
+📄 **التقرير الكامل (البحث، المصادر، المنهجية، النتائج، خطة التطوير):** [`docs/REPORT.md`](docs/REPORT.md)
+
+## التشغيل المحلي (5 دقائق)
+
+المتطلبات: Node.js 22+، Python 3 (اختياري لملء التاريخ).
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env          # كل المفاتيح اختيارية
+npm run db:migrate            # SQLite محليًا في data/egp-radar.db
+npm run import:history        # يستورد data/daily_fx.csv (972 يومًا حقيقيًا)
+npm run backtest              # يشغّل الاختبار التاريخي ويحفظ النتائج
+npm run build && npm start    # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+في نافذة ثانية — جامع البيانات (يعمل باستمرار):
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run worker
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `npm run collect:once` — دورة واحدة (مناسبة لـ cron النظام).
+- `npm run backfill:history` — تحديث `data/daily_fx.csv` من أرشيف currency-api ثم `npm run import:history`.
+- `npm test` — 15 اختبارًا (التقويم، التحليل، الرادار، منع تسرب البيانات، التنبيهات).
 
-## Learn More
+## النشر
 
-To learn more about Next.js, take a look at the following resources:
+**الخيار الموصى به — Docker Compose (ويب + جامع دائم + Postgres):**
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+cp .env.example .env && docker compose up -d --build
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**Vercel/Netlify + Supabase:** ضع `DATABASE_URL` و`CRON_SECRET` في متغيرات البيئة. المنصات بلا خوادم لا تشغّل عمليات دائمة، لذا الجمع يتم عبر `GET /api/cron/collect` مع `Authorization: Bearer $CRON_SECRET`:
+- `vercel.json` يضم Cron يومي (حد خطة Hobby).
+- `.github/workflows/collect.yml` يستدعيه كل 10 دقائق خلال ساعات العمل (أضف `APP_URL` و`CRON_SECRET` كـ secrets). Cron في GitHub قد يتأخر دقائق؛ للدقة استخدم الـ worker على خادم.
 
-## Deploy on Vercel
+## ضبط محوّلات البنوك
+كل بنك معرّف في `config/banks.json` (رابط + نمط صف الدولار + ترتيب أعمدة الشراء/البيع). لم يمكن التحقق منها من بيئة البناء (شبكة مقيدة)، لذا:
+1. شغّل `npm run collect:once` وافتح **صحة المصادر**.
+2. لأي بنك فاشل: افتح صفحته في المتصفح، حدّث الرابط/`rowMatch`/`buyIndex`/`sellIndex`. للصفحات المبنية بـ JavaScript (مثل الأهلي) استخدم رابط طلب JSON الظاهر في تبويب Network.
+3. فحص السلامة يرفض أي سعر غير منطقي (شراء > بيع، فرق > 3%، بعيد > 8% عن المرجع) بدل تخزينه.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+احترم شروط استخدام كل موقع، واترك `BANK_POLL_SECONDS` عند 300 ثانية أو أكثر، وضع بيانات تواصلك في `COLLECTOR_USER_AGENT`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## البنية
+```
+src/lib/sources/   محوّلات المصادر (بنوك، مرجعي، FRED، أخبار) + HTTP مهذب + مرآة npm
+src/lib/collector.ts  الجدولة، backoff، كشف التغيرات، منع التكرار، صحة المصادر
+src/lib/engine/    radar.ts · daily.ts (walk-forward) · intraday.ts · news.ts · tracker.ts · stats.ts
+src/lib/alerts/    القواعد + الحساسية + التهدئة + Telegram/Email
+src/lib/snapshot.ts   مصدر الحقيقة الوحيد للواجهة والـ API والمحلل
+src/app/           الصفحات + API: snapshot, history, stream(SSE), analyst, settings, health, backtest, cron/collect
+workers/           collector.ts (عملية دائمة) · backfill_npm_history.py
+config/            banks.json · holidays-eg.json (حدّث العطلات عند إعلان المركزي)
+```
+
+## ملاحظات أمان
+- لا مفاتيح في الكود أو الواجهة؛ كلها في متغيرات بيئة الخادم.
+- `/api/cron/collect` محمي بـ `CRON_SECRET`؛ حفظ الإعدادات محمي بـ `ADMIN_TOKEN` إن ضُبط؛ `/api/analyst` عليه حد معدل.
+
+> هذه المنصة أداة تحليل وليست نصيحة مالية. الأسعار المسحوبة ليست «لحظية» بالمعنى الدقيق؛ دقتها الزمنية = فترة السحب.

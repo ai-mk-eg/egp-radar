@@ -13,6 +13,7 @@ const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
     ignores: [
+      "data/**", "workers/*.py",
       "node_modules/**",
       ".next/**",
       "out/**",
@@ -20,6 +21,7 @@ const eslintConfig = [
       "next-env.d.ts",
     ],
   },
+  { rules: { "@typescript-eslint/no-explicit-any": "off" } },
 ];
 
 export default eslintConfig;

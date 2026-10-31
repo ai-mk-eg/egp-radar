@@ -1,0 +1,16 @@
+{
+  "_note": "Bank FX page adapters. These URLs/selectors could NOT be verified from the build environment (network-restricted). Each starts as verified=false; the Health page shows whether parsing succeeds. Fix a URL here without touching code. Respect each bank's terms of use and keep poll intervals modest. parser: 'html-row' finds the table row whose text matches rowMatch and takes buy/sell from numeric cells (buyIndex/sellIndex among the numbers in that row). 'json' reads buyPath/sellPath from a JSON payload located by rowMatch inside an array at listPath.",
+  "banks": [
+    { "id": "CBE",  "name_ar": "البنك المركزي المصري", "name_en": "Central Bank of Egypt", "url": "https://www.cbe.org.eg/en/economic-research/statistics/exchange-rates", "parser": "html-row", "rowMatch": "US Dollar|دولار أمريكي", "buyIndex": 0, "sellIndex": 1, "official": true },
+    { "id": "NBE",  "name_ar": "البنك الأهلي المصري", "name_en": "National Bank of Egypt", "url": "https://www.nbe.com.eg/NBE/E/#/EN/ExchangeRatesAndCurrencyConverter", "parser": "html-row", "rowMatch": "USD|US Dollar|دولار", "buyIndex": 0, "sellIndex": 1, "note": "SPA page: likely needs the underlying JSON endpoint; update url/parser after inspecting network calls in a browser." },
+    { "id": "BM",   "name_ar": "بنك مصر", "name_en": "Banque Misr", "url": "https://www.banquemisr.com/Home/CAPITAL%20MARKETS/Exchange%20Rates%20and%20Currencies", "parser": "html-row", "rowMatch": "USD|US Dollar|دولار", "buyIndex": 0, "sellIndex": 1 },
+    { "id": "CIB",  "name_ar": "البنك التجاري الدولي", "name_en": "CIB", "url": "https://www.cibeg.com/en/personal/rates/exchange-rates", "parser": "html-row", "rowMatch": "USD|US Dollar", "buyIndex": 0, "sellIndex": 1 },
+    { "id": "QNB",  "name_ar": "بنك QNB مصر", "name_en": "QNB Egypt", "url": "https://www.qnbalahli.com/sites/qnb/qnbegypt/page/en/enfxrates.html", "parser": "html-row", "rowMatch": "USD|US Dollar", "buyIndex": 0, "sellIndex": 1 },
+    { "id": "ALEX", "name_ar": "بنك الإسكندرية", "name_en": "Bank of Alexandria", "url": "https://www.alexbank.com/En/Home/ExchangeRates", "parser": "html-row", "rowMatch": "USD|US Dollar", "buyIndex": 0, "sellIndex": 1 },
+    { "id": "ADIB", "name_ar": "مصرف أبوظبي الإسلامي مصر", "name_en": "ADIB Egypt", "url": "https://www.adib.eg/Foreign-Currencies", "parser": "html-row", "rowMatch": "USD|US Dollar", "buyIndex": 0, "sellIndex": 1 },
+    { "id": "HSBC", "name_ar": "إتش إس بي سي مصر", "name_en": "HSBC Egypt", "url": "https://www.hsbc.com.eg/foreign-exchange/rates/", "parser": "html-row", "rowMatch": "USD|US Dollar", "buyIndex": 0, "sellIndex": 1 },
+    { "id": "BDC",  "name_ar": "بنك القاهرة", "name_en": "Banque du Caire", "url": "https://www.bdc.com.eg/bdcwebsite/home/exchange-rates", "parser": "html-row", "rowMatch": "USD|US Dollar|دولار", "buyIndex": 0, "sellIndex": 1 },
+    { "id": "AAIB", "name_ar": "البنك العربي الأفريقي الدولي", "name_en": "AAIB", "url": "https://aaib.com/services/rates", "parser": "html-row", "rowMatch": "USD|US Dollar", "buyIndex": 0, "sellIndex": 1 },
+    { "id": "SAIB", "name_ar": "بنك saib", "name_en": "SAIB", "url": "https://www.saib.com.eg/foreign-currencies/", "parser": "html-row", "rowMatch": "USD|US Dollar", "buyIndex": 0, "sellIndex": 1 }
+  ]
+}

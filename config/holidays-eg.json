@@ -1,0 +1,21 @@
+{
+  "_note": "Egyptian bank holidays (banks closed). Compiled from CBE announcements as reported by Arab Finance / Ahram / Amwal Al Ghad. CBE often announces/moves dates a few days ahead — VERIFY and update this file. Entries with verified=false were not cross-checked.",
+  "weekend": [5, 6],
+  "holidays": [
+    { "date": "2026-01-01", "name_ar": "نهاية السنة المالية للبنوك", "name_en": "Bank year-end holiday", "verified": true },
+    { "date": "2026-01-07", "name_ar": "عيد الميلاد المجيد", "name_en": "Coptic Christmas", "verified": false },
+    { "date": "2026-03-19", "name_ar": "عيد الفطر", "name_en": "Eid al-Fitr", "verified": true },
+    { "date": "2026-03-22", "name_ar": "عيد الفطر", "name_en": "Eid al-Fitr", "verified": true },
+    { "date": "2026-03-23", "name_ar": "عيد الفطر", "name_en": "Eid al-Fitr", "verified": true },
+    { "date": "2026-04-12", "name_ar": "عيد القيامة", "name_en": "Coptic Easter", "verified": false },
+    { "date": "2026-04-13", "name_ar": "شم النسيم", "name_en": "Sham El-Nessim", "verified": false },
+    { "date": "2026-05-26", "name_ar": "وقفة عرفات", "name_en": "Arafat Day", "verified": true },
+    { "date": "2026-05-27", "name_ar": "عيد الأضحى", "name_en": "Eid al-Adha", "verified": true },
+    { "date": "2026-05-28", "name_ar": "عيد الأضحى", "name_en": "Eid al-Adha", "verified": true },
+    { "date": "2026-05-31", "name_ar": "عيد الأضحى", "name_en": "Eid al-Adha", "verified": true },
+    { "date": "2026-06-18", "name_ar": "رأس السنة الهجرية", "name_en": "Islamic New Year", "verified": true },
+    { "date": "2026-07-23", "name_ar": "ذكرى ثورة 23 يوليو", "name_en": "July 23 Revolution", "verified": true },
+    { "date": "2026-10-08", "name_ar": "عيد القوات المسلحة", "name_en": "Armed Forces Day", "verified": true }
+  ],
+  "session": { "open": "09:00", "close": "15:00", "_note": "Retail bank FX quoting window (Cairo time). Banks may update outside it; adjust if needed." }
+}

@@ -1,0 +1,11 @@
+# Free scheduler for serverless deployments: calls the protected collection endpoint.
+# GitHub cron is best-effort (may be delayed several minutes) — use the long-running worker for tighter polling.
+name: collect
+on:
+  schedule: [{ cron: "*/10 5-14 * * 0-4" }]   # every 10 min, ~08:00–17:00 Cairo, Sun–Thu (UTC)
+  workflow_dispatch: {}
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    steps:
+      - run: curl -fsS -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" "${{ secrets.APP_URL }}/api/cron/collect"
